@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Friends Trivia — Setup</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="setup-page">
+  <div class="setup-container">
+    <header class="friends-header">
+      <div class="friends-title">
+        <span class="f">F</span><span class="r">R</span><span class="i">I</span><span class="e">E</span><span class="n">N</span><span class="d">D</span><span class="s">S</span>
+      </div>
+      <div class="subtitle">The One Where You Test Your Knowledge</div>
+    </header>
+
+    <div class="teams-row">
+      <div class="team-card team-1">
+        <h2>Team 1</h2>
+        <input type="text" id="team1Name" placeholder="Team name" value="The Monicas" maxlength="30">
+        <div class="players-section">
+          <label>Players</label>
+          <div id="team1Players" class="player-list">
+            <div class="player-input-row">
+              <input type="text" placeholder="Player name" class="player-input">
+              <button type="button" class="btn-remove-player" onclick="removePlayer(this)">×</button>
+            </div>
+          </div>
+          <button type="button" class="btn-add-player" onclick="addPlayer('team1Players')">+ Add Player</button>
+        </div>
+      </div>
+
+      <div class="team-card team-2">
+        <h2>Team 2</h2>
+        <input type="text" id="team2Name" placeholder="Team name" value="The Chandlers" maxlength="30">
+        <div class="players-section">
+          <label>Players</label>
+          <div id="team2Players" class="player-list">
+            <div class="player-input-row">
+              <input type="text" placeholder="Player name" class="player-input">
+              <button type="button" class="btn-remove-player" onclick="removePlayer(this)">×</button>
+            </div>
+          </div>
+          <button type="button" class="btn-add-player" onclick="addPlayer('team2Players')">+ Add Player</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-section">
+      <label>Questions Spreadsheet (.xlsx)</label>
+      <div class="file-drop-zone" id="dropZone">
+        <input type="file" id="questionsFile" accept=".xlsx" onchange="handleFile(this)">
+        <div class="drop-label">
+          <span class="drop-icon">📋</span>
+          <span id="fileName">Drop your .xlsx file here or click to browse</span>
+        </div>
+      </div>
+      <div id="parseStatus" class="parse-status"></div>
+    </div>
+
+    <div class="options-section">
+      <label class="option-toggle">
+        <input type="checkbox" id="lightningMode" checked>
+        <span class="toggle-label">⚡ Include Lightning Round</span>
+      </label>
+      <label class="option-toggle">
+        <input type="checkbox" id="ttsEnabled" checked>
+        <span class="toggle-label">🔊 Read questions aloud (TTS)</span>
+      </label>
+    </div>
+
+    <button id="startBtn" class="btn-start" disabled onclick="startGame()">Start Game</button>
+  </div>
+
+  <script>
+    let parsedQuestions = [];
+
+    function addPlayer(listId) {
+      const list = document.getElementById(listId);
+      const row = document.createElement('div');
+      row.className = 'player-input-row';
+      row.innerHTML = '<input type="text" placeholder="Player name" class="player-input"><button type="button" class="btn-remove-player" onclick="removePlayer(this)">×</button>';
+      list.appendChild(row);
+    }
+
+    function removePlayer(btn) {
+      const list = btn.parentElement.parentElement;
+      if (list.querySelectorAll('.player-input-row').length > 1) btn.parentElement.remove();
+    }
+
+    async function handleFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      document.getElementById('fileName').textContent = file.name;
+      const status = document.getElementById('parseStatus');
+      status.textContent = 'Parsing questions…';
+      status.className = 'parse-status loading';
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        const res = await fetch('/api/parse-questions', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        parsedQuestions = data.questions;
+        status.textContent = `✓ ${parsedQuestions.length} questions loaded`;
+        status.className = 'parse-status success';
+        document.getElementById('startBtn').disabled = false;
+      } catch (e) {
+        status.textContent = `✗ ${e.message}`;
+        status.className = 'parse-status error';
+      }
+    }
+
+    function startGame() {
+      const team1Name = document.getElementById('team1Name').value.trim() || 'Team 1';
+      const team2Name = document.getElementById('team2Name').value.trim() || 'Team 2';
+      const getPlayers = id => [...document.querySelectorAll(`#${id} .player-input`)].map(i => i.value.trim()).filter(Boolean);
+      const lightningMode = document.getElementById('lightningMode').checked;
+      const ttsEnabled   = document.getElementById('ttsEnabled').checked;
+      let questions = parsedQuestions;
+      if (!lightningMode) questions = questions.filter(q => !q.lightning);
+      localStorage.setItem('friendsTriviaConfig', JSON.stringify({
+        teams: [
+          { name: team1Name, players: getPlayers('team1Players'), score: 0 },
+          { name: team2Name, players: getPlayers('team2Players'), score: 0 },
+        ],
+        questions,
+        ttsEnabled,
+      }));
+      window.location.href = '/game';
+    }
+
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.xlsx')) {
+        const input = document.getElementById('questionsFile');
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        handleFile(input);
+      }
+    });
+  </script>
+</body>
+</html>
