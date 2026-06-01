@@ -46,10 +46,7 @@ function speak(text, onEnd) {
   utt.volume = 1.0;
   const voices = window.speechSynthesis.getVoices();
   const pick =
-    voices.find(v => v.name === 'Ava (Premium)') ||
-    voices.find(v => v.name === 'Ava') ||
-    voices.find(v => v.lang === 'en-US' && /premium|enhanced/i.test(v.name)) ||
-    voices.find(v => /premium|enhanced/i.test(v.name)) ||
+    voices.find(v => v.name === 'Samantha') ||
     voices.find(v => v.lang === 'en-US') ||
     voices.find(v => v.lang.startsWith('en')) ||
     voices[0];
