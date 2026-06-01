@@ -633,5 +633,17 @@ function endGame() {
   }
 }
 
+// ── Keyboard shortcuts ────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.code !== 'Space') return;
+  e.preventDefault();
+
+  const questionActive  = document.getElementById('screen-question').classList.contains('active');
+  const lightningActive = document.getElementById('screen-lightning').classList.contains('active');
+
+  if (questionActive)  buzzIn();
+  if (lightningActive) lightningResult(true);
+});
+
 // ── Boot ──────────────────────────────────────────────────────
 initGame();
