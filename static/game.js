@@ -218,7 +218,7 @@ function showBoard() {
   const turns = state.turnsCompleted[team];
 
   document.getElementById('board-turn-label').textContent =
-    `${state.teams[team]}'s turn — choose a category! (${turns} / ${state.maxTurns} done)`;
+    `${state.teams[team]}'s turn — choose a category! (Question ${turns + 1} of ${state.maxTurns})`;
 
   const grid = document.getElementById('category-grid');
   grid.innerHTML = '';
@@ -260,7 +260,7 @@ function showQuestionScreen(q, cat) {
   document.getElementById('buzz-btn').classList.remove('hidden');
   document.getElementById('timeout-msg').classList.add('hidden');
 
-  updateMainTimerDisplay(15);
+  updateMainTimerDisplay(15000, 15000);
   stopMainTimer();
 
   const ttsText = `This question is about ${q.person}! ` + q.question;
@@ -269,35 +269,41 @@ function showQuestionScreen(q, cat) {
 
 // ── Main Timer ───────────────────────────────────────────────
 function startMainTimer() {
-  state.mainTimerValue = 15;
-  updateMainTimerDisplay(15);
+  const duration  = 15000;
+  const startTime = performance.now();
+  updateMainTimerDisplay(duration, duration);
 
-  state.mainTimerInterval = setInterval(() => {
-    state.mainTimerValue--;
-    updateMainTimerDisplay(state.mainTimerValue);
-    if (state.mainTimerValue <= 0) {
-      stopMainTimer();
+  function tick(now) {
+    const remaining = Math.max(0, duration - (now - startTime));
+    updateMainTimerDisplay(remaining, duration);
+    if (remaining <= 0) {
+      state.mainTimerInterval = null;
       onTimerEnd();
+      return;
     }
-  }, 1000);
+    state.mainTimerInterval = requestAnimationFrame(tick);
+  }
+  state.mainTimerInterval = requestAnimationFrame(tick);
 }
 
 function stopMainTimer() {
-  clearInterval(state.mainTimerInterval);
-  state.mainTimerInterval = null;
+  if (state.mainTimerInterval) {
+    cancelAnimationFrame(state.mainTimerInterval);
+    state.mainTimerInterval = null;
+  }
 }
 
-function updateMainTimerDisplay(val) {
-  const total = 15;
-  const pct   = (val / total) * 100;
-  const bar   = document.getElementById('timer-bar');
-  const num   = document.getElementById('timer-val');
+function updateMainTimerDisplay(remainingMs, totalMs = 15000) {
+  const pct  = (remainingMs / totalMs) * 100;
+  const secs = Math.ceil(remainingMs / 1000);
+  const bar  = document.getElementById('timer-bar');
+  const num  = document.getElementById('timer-val');
 
   bar.style.width = pct + '%';
-  num.textContent = val;
+  num.textContent = secs;
 
-  const color = val <= 5  ? 'var(--timer-danger)'
-              : val <= 8  ? 'var(--timer-warn)'
+  const color = secs <= 5 ? 'var(--timer-danger)'
+              : secs <= 8 ? 'var(--timer-warn)'
               : 'var(--timer-ok)';
   bar.style.background = color;
   num.style.color      = color;
@@ -495,35 +501,41 @@ function lightningResult(correct) {
 
 // ── Lightning Timer ────────────────────────────────────────────
 function startLightningTimer(teamIdx) {
-  state.lightningTimerValue = 30;
-  updateLightningTimerDisplay(30);
+  const duration  = 30000;
+  const startTime = performance.now();
+  updateLightningTimerDisplay(duration, duration);
 
-  state.lightningTimerInterval = setInterval(() => {
-    state.lightningTimerValue--;
-    updateLightningTimerDisplay(state.lightningTimerValue);
-    if (state.lightningTimerValue <= 0) {
-      stopLightningTimer();
+  function tick(now) {
+    const remaining = Math.max(0, duration - (now - startTime));
+    updateLightningTimerDisplay(remaining, duration);
+    if (remaining <= 0) {
+      state.lightningTimerInterval = null;
       onLightningTimerEnd(teamIdx);
+      return;
     }
-  }, 1000);
+    state.lightningTimerInterval = requestAnimationFrame(tick);
+  }
+  state.lightningTimerInterval = requestAnimationFrame(tick);
 }
 
 function stopLightningTimer() {
-  clearInterval(state.lightningTimerInterval);
-  state.lightningTimerInterval = null;
+  if (state.lightningTimerInterval) {
+    cancelAnimationFrame(state.lightningTimerInterval);
+    state.lightningTimerInterval = null;
+  }
 }
 
-function updateLightningTimerDisplay(val) {
-  const total = 30;
-  const pct   = (val / total) * 100;
-  const bar   = document.getElementById('lightning-timer-bar');
-  const num   = document.getElementById('lightning-timer-val');
+function updateLightningTimerDisplay(remainingMs, totalMs = 30000) {
+  const pct  = (remainingMs / totalMs) * 100;
+  const secs = Math.ceil(remainingMs / 1000);
+  const bar  = document.getElementById('lightning-timer-bar');
+  const num  = document.getElementById('lightning-timer-val');
 
   bar.style.width = pct + '%';
-  num.textContent = val;
+  num.textContent = secs;
 
-  const color = val <= 8  ? 'var(--timer-danger)'
-              : val <= 15 ? 'var(--timer-warn)'
+  const color = secs <= 8  ? 'var(--timer-danger)'
+              : secs <= 15 ? 'var(--timer-warn)'
               : 'var(--timer-ok)';
   bar.style.background = color;
   num.style.color      = color;
