@@ -34,16 +34,56 @@ const state = {
   mainTimerValue:         15,
   lightningTimerInterval: null,
   lightningTimerValue:    30,
+
+  maxTurnsPerTeam: [10, 10],
 };
 
 // ── TTS ──────────────────────────────────────────────────────
-function speak(text, onEnd) {
-  if (!window.speechSynthesis) { onEnd && onEnd(); return; }
+let _currentAudio = null;
+
+function stopSpeech() {
+  if (_currentAudio) {
+    _currentAudio.onended = null;
+    _currentAudio.onerror = null;
+    _currentAudio.pause();
+    _currentAudio = null;
+  }
+  window.speechSynthesis?.cancel();
+}
+
+async function speak(text, onEnd) {
+  stopSpeech();
+  try {
+    const resp = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!resp.ok) throw new Error('tts_unavailable');
+    const blob  = await resp.blob();
+    const url   = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    _currentAudio = audio;
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      _currentAudio = null;
+      onEnd?.();
+    };
+    audio.onerror = () => {
+      _currentAudio = null;
+      onEnd?.();
+    };
+    audio.play();
+  } catch {
+    _browserSpeak(text, onEnd);
+  }
+}
+
+function _browserSpeak(text, onEnd) {
+  if (!window.speechSynthesis) { onEnd?.(); return; }
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
-  utt.rate = 0.92;
-  utt.pitch = 1.0;
-  utt.volume = 1.0;
+  utt.rate = 0.92; utt.pitch = 1.0; utt.volume = 1.0;
   const voices = window.speechSynthesis.getVoices();
   const pick =
     voices.find(v => v.name === 'Samantha') ||
@@ -55,17 +95,17 @@ function speak(text, onEnd) {
   window.speechSynthesis.speak(utt);
 }
 
-function stopSpeech() {
-  window.speechSynthesis?.cancel();
-}
-
-// Ensure voices are loaded (Chrome lazy-loads them)
+// Fallback voice pre-load (used when ElevenLabs is unavailable)
 if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
   window.speechSynthesis.getVoices();
 }
 
 // ── Helpers ──────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -117,9 +157,6 @@ async function initGame() {
 
   preparePools();
   updateScoreboard();
-  document.getElementById('score-a-name').textContent = state.teams[0];
-  document.getElementById('score-b-name').textContent = state.teams[1];
-
   startCoinToss();
 }
 
@@ -138,6 +175,9 @@ function preparePools() {
       state.boardPools[ansTeam][cat]    = shuffle(matching);
       state.boardPointers[ansTeam][cat] = 0;
     }
+
+    const total = state.categories.reduce((sum, cat) => sum + state.boardPools[ansTeam][cat].length, 0);
+    state.maxTurnsPerTeam[ansTeam] = Math.min(state.maxTurns, total);
   }
 }
 
@@ -185,9 +225,7 @@ function startCoinToss() {
     `Let's flip a coin to decide who answers first!`;
 
   document.getElementById('toss-status').textContent = 'Ross is speaking…';
-  speak(intro);
-
-  setTimeout(() => {
+  speak(intro, () => {
     const coin = document.getElementById('coin');
     coin.classList.add('flipping');
     document.getElementById('toss-status').textContent = 'Flipping…';
@@ -205,7 +243,7 @@ function startCoinToss() {
 
       speak(`${state.teams[winner]} wins the toss! As Chandler would say, could this BE any more exciting? Let's play!`);
     }, 2600);
-  }, 4000);
+  });
 }
 
 // ── Board ─────────────────────────────────────────────────────
@@ -218,7 +256,7 @@ function showBoard() {
   const turns = state.turnsCompleted[team];
 
   document.getElementById('board-turn-label').textContent =
-    `${state.teams[team]}'s turn — choose a category! (Question ${turns + 1} of ${state.maxTurns})`;
+    `${state.teams[team]}'s turn — choose a category! (Question ${turns + 1} of ${state.maxTurnsPerTeam[team]})`;
 
   const grid = document.getElementById('category-grid');
   grid.innerHTML = '';
@@ -228,7 +266,7 @@ function showBoard() {
     const card     = document.createElement('div');
     card.className = 'cat-card' + (count === 0 ? ' exhausted' : '');
     card.innerHTML = `
-      <div class="cat-name">${cat}</div>
+      <div class="cat-name">${escHtml(cat)}</div>
       <div class="cat-count">${count} question${count !== 1 ? 's' : ''} left</div>
     `;
     if (count > 0) card.onclick = () => selectCategory(cat);
@@ -313,10 +351,7 @@ function onTimerEnd() {
   stopSpeech();
   document.getElementById('buzz-btn').classList.add('hidden');
   document.getElementById('timeout-msg').classList.remove('hidden');
-  speak(`Time's up! No one buzzed in — moving on.`);
-
-  // Auto-mark incorrect after short pause
-  setTimeout(() => reportResult(false), 2000);
+  speak(`Time's up! No one buzzed in. Let's see the answer.`, () => goToRevealScreen(true));
 }
 
 // ── Buzz In ──────────────────────────────────────────────────
@@ -326,8 +361,7 @@ function buzzIn() {
   stopMainTimer();
   stopSpeech();
   document.getElementById('buzz-btn').classList.add('hidden');
-  speak(`Buzzed in! Let's see if you've got it.`);
-  setTimeout(() => goToRevealScreen(false), 1200);
+  speak(`Buzzed in! Let's see if you've got it.`, () => goToRevealScreen(false));
 }
 
 // ── Reveal screen ────────────────────────────────────────────
@@ -377,8 +411,8 @@ function reportResult(correct) {
 
 // ── Turn management ───────────────────────────────────────────
 function advanceTurn() {
-  const done0 = state.turnsCompleted[0] >= state.maxTurns;
-  const done1 = state.turnsCompleted[1] >= state.maxTurns;
+  const done0 = state.turnsCompleted[0] >= state.maxTurnsPerTeam[0];
+  const done1 = state.turnsCompleted[1] >= state.maxTurnsPerTeam[1];
 
   if (done0 && done1) {
     endPhaseOne();
@@ -433,7 +467,7 @@ function startLightningIntro(isTie) {
   const scoresEl = document.getElementById('lightning-intro-scores');
   scoresEl.innerHTML = state.teams.map((t, i) => `
     <div class="final-score-card">
-      <div class="team-name">${t}</div>
+      <div class="team-name">${escHtml(t)}</div>
       <div class="score-num">${state.scores[i]}</div>
     </div>
   `).join('');
@@ -450,15 +484,12 @@ function startLightningForTeam(teamIdx) {
   showScreen('screen-lightning');
   document.getElementById('lightning-team-label').textContent = `${state.teams[teamIdx]}'s Lightning Round!`;
   document.getElementById('lightning-score-pts').textContent  = '0';
-  updateLightningTimerDisplay(30);
+  updateLightningTimerDisplay(30000, 30000);
 
-  speak(`${state.teams[teamIdx]}, you have 30 seconds! Answer as many as you can! Ready? Go!`);
-
-  // Start timer after fixed delay — don't rely on TTS callback which can fail on second team
-  setTimeout(() => {
+  speak(`${state.teams[teamIdx]}, you have 30 seconds! Answer as many as you can! Ready? Go!`, () => {
     startLightningTimer(teamIdx);
     showLightningQuestion(teamIdx);
-  }, 3000);
+  });
 }
 
 function showLightningQuestion(teamIdx) {
@@ -571,7 +602,6 @@ function endGame() {
   showScreen('screen-game-over');
 
   const [s0, s1]   = state.scores;
-  const [t0, t1]   = state.teams;
   const isTie      = s0 === s1;
   const winnerIdx  = s0 > s1 ? 0 : 1;
 
@@ -590,7 +620,7 @@ function endGame() {
   const scoresEl = document.getElementById('final-scores-display');
   scoresEl.innerHTML = state.teams.map((t, i) => `
     <div class="final-score-card ${(!isTie && i === winnerIdx) ? 'winner' : ''}">
-      <div class="team-name">${t}</div>
+      <div class="team-name">${escHtml(t)}</div>
       <div class="score-num">${state.scores[i]}</div>
     </div>
   `).join('');
