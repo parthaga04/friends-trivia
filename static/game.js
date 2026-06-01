@@ -45,10 +45,14 @@ function speak(text, onEnd) {
   utt.pitch = 1.0;
   utt.volume = 1.0;
   const voices = window.speechSynthesis.getVoices();
-  const pick = voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('male'))
-            || voices.find(v => v.lang === 'en-US')
-            || voices.find(v => v.lang.startsWith('en'))
-            || voices[0];
+  const pick =
+    voices.find(v => v.name === 'Ava (Premium)') ||
+    voices.find(v => v.name === 'Ava') ||
+    voices.find(v => v.lang === 'en-US' && /premium|enhanced/i.test(v.name)) ||
+    voices.find(v => /premium|enhanced/i.test(v.name)) ||
+    voices.find(v => v.lang === 'en-US') ||
+    voices.find(v => v.lang.startsWith('en')) ||
+    voices[0];
   if (pick) utt.voice = pick;
   if (onEnd) utt.onend = onEnd;
   window.speechSynthesis.speak(utt);
@@ -259,6 +263,7 @@ function showQuestionScreen(q, cat) {
   document.getElementById('buzz-btn').classList.remove('hidden');
   document.getElementById('timeout-msg').classList.add('hidden');
 
+  updateMainTimerDisplay(15);
   stopMainTimer();
 
   const ttsText = `This question is about ${q.person}! ` + q.question;
@@ -305,10 +310,10 @@ function onTimerEnd() {
   stopSpeech();
   document.getElementById('buzz-btn').classList.add('hidden');
   document.getElementById('timeout-msg').classList.remove('hidden');
-  speak(`Time's up! Let's see the answer.`);
+  speak(`Time's up! No one buzzed in — moving on.`);
 
-  // Move straight to reveal screen after short pause
-  setTimeout(() => goToRevealScreen(true), 1800);
+  // Auto-mark incorrect after short pause
+  setTimeout(() => reportResult(false), 2000);
 }
 
 // ── Buzz In ──────────────────────────────────────────────────
@@ -454,14 +459,15 @@ function startLightningForTeam(teamIdx) {
   showScreen('screen-lightning');
   document.getElementById('lightning-team-label').textContent = `${state.teams[teamIdx]}'s Lightning Round!`;
   document.getElementById('lightning-score-pts').textContent  = '0';
+  updateLightningTimerDisplay(30);
 
-  speak(
-    `${state.teams[teamIdx]}, you have 30 seconds! Answer as many as you can! Ready? Go!`,
-    () => {
-      startLightningTimer(teamIdx);
-      showLightningQuestion(teamIdx);
-    }
-  );
+  speak(`${state.teams[teamIdx]}, you have 30 seconds! Answer as many as you can! Ready? Go!`);
+
+  // Start timer after fixed delay — don't rely on TTS callback which can fail on second team
+  setTimeout(() => {
+    startLightningTimer(teamIdx);
+    showLightningQuestion(teamIdx);
+  }, 3000);
 }
 
 function showLightningQuestion(teamIdx) {
