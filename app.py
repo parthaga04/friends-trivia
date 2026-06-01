@@ -55,6 +55,8 @@ def parse_excel(filepath):
 
 @app.route('/')
 def index():
+    global GAME_DATA
+    GAME_DATA = {}
     return render_template('index.html')
 
 
