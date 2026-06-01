@@ -193,15 +193,24 @@ p  { font-size: clamp(1rem, 2.5vw, 1.4rem); color: var(--muted); }
 .coin-container { margin: 2rem 0; perspective: 600px; }
 .coin {
   width: 140px; height: 140px;
-  background: radial-gradient(circle at 35% 35%, var(--primary), #b8860b);
   border-radius: 50%;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+  position: relative;
+}
+.coin-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--primary), #b8860b);
   border: 6px solid #b8860b;
   display: flex; align-items: center; justify-content: center;
   font-size: 3rem;
-  margin: 0 auto;
   box-shadow: 0 0 40px rgba(255,215,0,0.4);
-  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
+.coin-back { transform: rotateY(180deg); }
 .coin.flipping {
   animation: coin-flip 2.5s ease-in-out forwards;
 }

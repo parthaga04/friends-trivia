@@ -185,7 +185,9 @@ function startCoinToss() {
     `Let's flip a coin to decide who answers first!`;
 
   document.getElementById('toss-status').textContent = 'Ross is speaking…';
-  speak(intro, () => {
+  speak(intro);
+
+  setTimeout(() => {
     const coin = document.getElementById('coin');
     coin.classList.add('flipping');
     document.getElementById('toss-status').textContent = 'Flipping…';
@@ -201,11 +203,9 @@ function startCoinToss() {
       resultEl.classList.remove('hidden');
       document.getElementById('toss-continue-btn').classList.remove('hidden');
 
-      speak(
-        `${state.teams[winner]} wins the toss! As Chandler would say, could this BE any more exciting? Let's play!`
-      );
+      speak(`${state.teams[winner]} wins the toss! As Chandler would say, could this BE any more exciting? Let's play!`);
     }, 2600);
-  });
+  }, 4000);
 }
 
 // ── Board ─────────────────────────────────────────────────────
@@ -359,20 +359,8 @@ function reportResult(correct) {
   if (correct) {
     state.scores[state.currentTeam]++;
     updateScoreboard();
-    const lines = [
-      `Correct! Well done, ${state.teams[state.currentTeam]}!`,
-      `Outstanding! A state of total awareness, and you have it!`,
-      `That's right! Even I'm impressed, and I have a PhD.`,
-    ];
-    speak(lines[Math.floor(Math.random() * lines.length)]);
     showToast(`+1 for ${state.teams[state.currentTeam]}! 🎉`);
   } else {
-    const lines = [
-      `Incorrect! The correct answer was already on screen. We were… wrong.`,
-      `Oh no! Better luck on the next one!`,
-      `That's not it. Don't worry — even I've been wrong. Twice. Married wrong twice.`,
-    ];
-    speak(lines[Math.floor(Math.random() * lines.length)]);
     showToast(`No point this time.`);
   }
 
