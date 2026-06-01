@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friends Trivia – Setup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d0119;
+      --card:     #1c0d33;
+      --card2:    #251544;
+      --primary:  #ffd700;
+      --purple:   #9b59b6;
+      --text:     #ffffff;
+      --muted:    #b8a9d9;
+      --radius:   16px;
+      --shadow:   0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Logo ── */
+    .logo {
+      font-family: 'Lobster', cursive;
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+      letter-spacing: 0.04em;
+    }
+    .logo .f { color: #e74c3c; }
+    .logo .r { color: #e67e22; }
+    .logo .i { color: #f1c40f; }
+    .logo .e { color: #2ecc71; }
+    .logo .n { color: #3498db; }
+    .logo .d { color: #9b59b6; }
+    .logo .s { color: #e74c3c; }
+    .tagline {
+      color: var(--primary);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Form card ── */
+    form { width: 100%; max-width: 960px; }
+
+    .teams-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 600px) { .teams-row { grid-template-columns: 1fr; } }
+
+    .team-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      border: 2px solid transparent;
+      box-shadow: var(--shadow);
+    }
+    .team-card.a { border-color: #3498db44; }
+    .team-card.b { border-color: #e74c3c44; }
+
+    .team-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .team-card.a .team-label { color: #5dade2; }
+    .team-card.b .team-label { color: #e67e73; }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--card2);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 0.65rem 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--primary); }
+
+    .players-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin: 1rem 0 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+    .player-row input { font-size: 1rem; font-weight: 600; flex: 1; }
+
+    .btn-remove {
+      background: rgba(231,76,60,0.2);
+      border: none;
+      color: #e74c3c;
+      border-radius: 8px;
+      width: 34px; height: 34px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .btn-remove:hover { background: rgba(231,76,60,0.4); }
+
+    .btn-add {
+      background: rgba(255,215,0,0.1);
+      border: 2px dashed rgba(255,215,0,0.4);
+      color: var(--primary);
+      border-radius: 10px;
+      padding: 0.45rem 1rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 0.4rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-add:hover { background: rgba(255,215,0,0.2); border-color: var(--primary); }
+
+    /* ── Bottom options ── */
+    .options-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 600px) { .options-row { grid-template-columns: 1fr; } }
+
+    .option-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .option-card h3 {
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .radio-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .radio-option input[type="radio"] { accent-color: var(--primary); width: 18px; height: 18px; }
+
+    .file-upload-area {
+      border: 2px dashed rgba(255,215,0,0.4);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .file-upload-area:hover { border-color: var(--primary); background: rgba(255,215,0,0.05); }
+    .file-upload-area label { cursor: pointer; }
+    .file-upload-area input[type="file"] { display: none; }
+    .file-icon { font-size: 2rem; display: block; margin-bottom: 0.25rem; }
+    .file-name {
+      font-size: 0.9rem;
+      color: var(--primary);
+      font-weight: 700;
+      margin-top: 0.4rem;
+      min-height: 1.2em;
+    }
+    .file-hint { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* ── Start button ── */
+    .btn-start {
+      display: block;
+      width: 100%;
+      max-width: 960px;
+      background: linear-gradient(135deg, var(--primary), #ff8c00);
+      border: none;
+      border-radius: 16px;
+      color: #0d0119;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      padding: 1rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 0 4px 24px rgba(255,215,0,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(255,215,0,0.5); }
+    .btn-start:active { transform: translateY(0); }
+
+    .template-link {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .template-link a { color: var(--primary); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div class="logo">
+    <span class="f">F</span><span class="r">R</span><span class="i">I</span><span class="e">E</span><span class="n">N</span><span class="d">D</span><span class="s">S</span>
+  </div>
+  <div class="tagline">Trivia Night</div>
+
+  <form action="/start" method="POST" enctype="multipart/form-data">
+
+    <div class="teams-row">
+      <!-- Team A -->
+      <div class="team-card a">
+        <div class="team-label">Team A – Name</div>
+        <input type="text" name="team_a_name" placeholder="e.g. The Monicas" maxlength="30">
+        <div class="players-label">Players</div>
+        <div id="players-a"></div>
+        <button type="button" class="btn-add" onclick="addPlayer('a')">+ Add Player</button>
+      </div>
+
+      <!-- Team B -->
+      <div class="team-card b">
+        <div class="team-label">Team B – Name</div>
+        <input type="text" name="team_b_name" placeholder="e.g. The Joeys" maxlength="30">
+        <div class="players-label">Players</div>
+        <div id="players-b"></div>
+        <button type="button" class="btn-add" onclick="addPlayer('b')">+ Add Player</button>
+      </div>
+    </div>
+
+    <div class="options-row">
+      <!-- File upload -->
+      <div class="option-card">
+        <h3>Questions File</h3>
+        <div class="file-upload-area" onclick="document.getElementById('excel-file').click()">
+          <label>
+            <span class="file-icon">📊</span>
+            <span>Click to upload your Excel file</span>
+            <input type="file" id="excel-file" name="excel_file" accept=".xlsx,.xls" onchange="showFileName(this)">
+          </label>
+          <div class="file-name" id="file-name-display">No file chosen</div>
+          <div class="file-hint">friends_trivia_questions.xlsx</div>
+        </div>
+      </div>
+
+      <!-- Lightning mode -->
+      <div class="option-card">
+        <h3>Lightning Round</h3>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="lightning_mode" value="tie" checked>
+            Only if it's a tie after Phase 1
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="lightning_mode" value="always">
+            Always include it (even if not tied)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-start">⚡ Start the Game ⚡</button>
+  </form>
+
+  <div class="template-link">
+    Need the question template?
+    Run <code>python create_template.py</code> to generate <strong>friends_trivia_questions.xlsx</strong>
+  </div>
+
+  <script>
+    let counters = { a: 0, b: 0 };
+
+    function addPlayer(team) {
+      counters[team]++;
+      const container = document.getElementById('players-' + team);
+      const div = document.createElement('div');
+      div.className = 'player-row';
+      div.id = 'player-' + team + '-' + counters[team];
+      div.innerHTML = `
+        <input type="text" name="players_${team}" placeholder="Player name" maxlength="25" autocomplete="off">
+        <button type="button" class="btn-remove" onclick="removePlayer('${team}', ${counters[team]})">×</button>
+      `;
+      container.appendChild(div);
+      div.querySelector('input').focus();
+    }
+
+    function removePlayer(team, id) {
+      const el = document.getElementById('player-' + team + '-' + id);
+      if (el) el.remove();
+    }
+
+    function showFileName(input) {
+      const display = document.getElementById('file-name-display');
+      display.textContent = input.files[0]?.name || 'No file chosen';
+    }
+
+    // Add two players by default for each team
+    addPlayer('a'); addPlayer('a');
+    addPlayer('b'); addPlayer('b');
+  </script>
+</body>
+</html>

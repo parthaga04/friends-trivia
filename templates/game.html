@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friends Trivia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Persistent scoreboard -->
+  <div id="scoreboard">
+    <div class="score-team" id="score-a">
+      <span class="name" id="score-a-name">Team A</span>
+      <span class="pts" id="score-a-pts">0</span>
+    </div>
+    <div class="score-divider">
+      <div class="friends-logo" style="font-size:1.6rem;">
+        <span class="f">F</span><span class="r">R</span><span class="i">I</span><span class="e">E</span><span class="n">N</span><span class="d">D</span><span class="s">S</span>
+      </div>
+    </div>
+    <div class="score-team" id="score-b" style="text-align:right;">
+      <span class="name" id="score-b-name">Team B</span>
+      <span class="pts" id="score-b-pts">0</span>
+    </div>
+  </div>
+
+  <!-- Ross commentary toast -->
+  <div id="ross-toast">
+    <div class="ross-label">Ross says…</div>
+    <div id="ross-toast-text"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: Coin Toss
+  ════════════════════════════════════════════════════════ -->
+  <div class="screen active" id="screen-coin-toss">
+    <div class="friends-logo" style="margin-bottom:0.5rem;">
+      <span class="f">F</span><span class="r">R</span><span class="i">I</span><span class="e">E</span><span class="n">N</span><span class="d">D</span><span class="s">S</span>
+    </div>
+    <p style="color:var(--primary);font-weight:800;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:2rem;">Trivia Night</p>
+
+    <div class="coin-container">
+      <div class="coin" id="coin">🎸</div>
+    </div>
+
+    <div id="toss-status" style="font-size:1.2rem;color:var(--muted);min-height:2em;margin-top:1rem;">
+      Waiting for Ross…
+    </div>
+    <div class="coin-result hidden" id="toss-result"></div>
+
+    <div class="btn-row mt-lg">
+      <button class="btn btn-primary hidden" id="toss-continue-btn" onclick="showBoard()">
+        Let's Play! 🎉
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: Board (category selection)
+  ════════════════════════════════════════════════════════ -->
+  <div class="screen with-scoreboard" id="screen-board">
+    <div class="label-chip" id="board-phase-label">Phase 1 – Main Board</div>
+    <div class="board-turn-label" id="board-turn-label">Team A – choose a category!</div>
+    <div class="category-grid" id="category-grid"></div>
+    <p class="mt-md" style="font-size:0.9rem;">Questions remaining are those about the opposing team's players.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: Question (timer running)
+  ════════════════════════════════════════════════════════ -->
+  <div class="screen with-scoreboard" id="screen-question">
+    <div class="label-chip" id="q-category-label">Category</div>
+    <div class="about-badge" id="q-about-badge">
+      👤 This question is about: <span class="person-name" id="q-person-name">Name</span>
+    </div>
+
+    <p class="question-text fade-in" id="q-text">Question text here</p>
+
+    <div class="timer-wrap">
+      <div class="timer-top">
+        <div class="timer-val" id="timer-val">15</div>
+      </div>
+      <div class="timer-bar-bg">
+        <div class="timer-bar-fill" id="timer-bar" style="width:100%"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-buzz" id="buzz-btn" onclick="buzzIn()">
+        🎤 BUZZ IN!
+      </button>
+    </div>
+
+    <div id="timeout-msg" class="hidden mt-md" style="color:var(--incorrect);font-size:1.3rem;font-weight:800;">
+      ⏰ Time's Up!
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: Reveal answer + self-report
+  ════════════════════════════════════════════════════════ -->
+  <div class="screen with-scoreboard" id="screen-reveal">
+    <div class="label-chip" id="reveal-category-label">Category</div>
+    <div class="about-badge" id="reveal-about-badge">
+      👤 This question is about: <span class="person-name" id="reveal-person-name">Name</span>
+    </div>
+
+    <p class="question-text" id="reveal-q-text" style="color:var(--muted);"></p>
+
+    <!-- Reveal button (before reveal) -->
+    <div id="reveal-btn-wrap">
+      <button class="btn btn-reveal" onclick="showAnswer()">
+        👁 Reveal Answer
+      </button>
+    </div>
+
+    <!-- Answer box (hidden until reveal) -->
+    <div class="answer-box hidden fade-in" id="answer-box">
+      <div class="label">Correct Answer</div>
+      <div class="answer-text" id="answer-text">Answer here</div>
+    </div>
+
+    <!-- Self-report (hidden until reveal) -->
+    <div class="hidden" id="self-report-wrap">
+      <p class="self-report-prompt" id="self-report-prompt">Did <strong id="answering-team-name">Team A</strong> get it right?</p>
+      <div class="btn-row">
+        <button class="btn btn-correct" onclick="reportResult(true)">✓ Correct</button>
+        <button class="btn btn-incorrect" onclick="reportResult(false)">✗ Incorrect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: Lightning Intro
+  ════════════════════════════════════════════════════════ -->
+  <div class="screen with-scoreboard" id="screen-lightning-intro">
+    <div class="lightning-bolt">⚡</div>
+    <h1 style="color:var(--primary);margin-top:0.5rem;">Lightning Round!</h1>
+    <p id="lightning-intro-msg" style="max-width:600px;margin:1rem auto;">Get ready for 30 seconds of rapid-fire questions!</p>
+
+    <div class="final-scores" id="lightning-intro-scores"></div>
+
+    <div class="btn-row mt-lg">
+      <button class="btn btn-primary" id="lightning-start-btn" onclick="startLightningForTeam(state.lightningTeamOrder[0])">
+        ⚡ Start Lightning Round!
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: Lightning Question
+  ════════════════════════════════════════════════════════ -->
+  <div class="screen with-scoreboard" id="screen-lightning">
+    <div class="lightning-header">
+      <div class="lightning-team-label" id="lightning-team-label">Team A's Turn</div>
+      <div class="lightning-score-display">
+        Score: <span class="pts" id="lightning-score-pts">0</span>
+      </div>
+    </div>
+
+    <div class="timer-wrap" style="max-width:800px;">
+      <div class="timer-top">
+        <div class="timer-val" id="lightning-timer-val">30</div>
+      </div>
+      <div class="timer-bar-bg">
+        <div class="timer-bar-fill" id="lightning-timer-bar" style="width:100%"></div>
+      </div>
+    </div>
+
+    <div class="lightning-q-box fade-in" id="lightning-q-box">
+      <div class="lightning-about" id="lightning-about">About: NAME</div>
+      <div class="lightning-question" id="lightning-question">Question text…</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-correct" onclick="lightningResult(true)">✓ Correct</button>
+      <button class="btn btn-skip" onclick="lightningResult(false)">→ Skip</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: Lightning Team Switch
+  ════════════════════════════════════════════════════════ -->
+  <div class="screen with-scoreboard" id="screen-lightning-switch">
+    <div class="lightning-bolt">⚡</div>
+    <h2 id="lightning-switch-title" style="color:var(--primary);margin-top:0.5rem;">Time's Up!</h2>
+    <p id="lightning-switch-msg" style="margin:1rem 0;">Getting ready for the next team…</p>
+    <div id="lightning-switch-score" style="font-size:1.5rem;font-weight:900;color:var(--primary);margin:1rem 0;"></div>
+    <div class="btn-row mt-lg">
+      <button class="btn btn-primary" id="lightning-next-btn">
+        Next Team ⚡
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: Game Over
+  ════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-game-over">
+    <div class="label-chip">Game Over</div>
+    <h2 id="winner-label" style="color:var(--muted);">And the winner is…</h2>
+    <div class="winner-name" id="winner-name">🏆</div>
+
+    <div class="final-scores" id="final-scores-display"></div>
+
+    <p id="game-over-msg" style="max-width:600px;margin:0 auto;"></p>
+
+    <div class="play-again-row mt-lg">
+      <button class="btn btn-primary" onclick="location.href='/'">Play Again 🎸</button>
+    </div>
+  </div>
+
+  <script src="/static/game.js"></script>
+</body>
+</html>
