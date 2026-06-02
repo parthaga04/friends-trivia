@@ -105,6 +105,7 @@ def start_game():
     team_a_name = request.form.get('team_a_name', 'Team A').strip() or 'Team A'
     team_b_name = request.form.get('team_b_name', 'Team B').strip() or 'Team B'
     lightning_mode = request.form.get('lightning_mode', 'tie')
+    num_questions = int(request.form.get('num_questions', 10))
 
     players_a = [p.strip() for p in request.form.getlist('players_a') if p.strip()]
     players_b = [p.strip() for p in request.form.getlist('players_b') if p.strip()]
@@ -126,6 +127,7 @@ def start_game():
         'questions': questions_by_category,
         'lightning': lightning_questions,
         'lightning_mode': lightning_mode,
+        'num_questions': num_questions,
     }
 
     return redirect(url_for('game'))

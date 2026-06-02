@@ -5,6 +5,12 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+@font-face {
+  font-family: 'Friends';
+  src: url('/static/fonts/friends.ttf') format('truetype');
+  font-display: swap;
+}
+
 :root {
   --bg:           #0d0119;
   --card:         #1c0d33;
@@ -73,7 +79,7 @@ html, body {
 
 /* ── Friends Logo ──────────────────────────────────────────── */
 .friends-logo {
-  font-family: 'Lobster', cursive;
+  font-family: 'Friends', sans-serif;
   font-size: clamp(3rem, 8vw, 6rem);
   line-height: 1;
   letter-spacing: 0.05em;

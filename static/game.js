@@ -153,6 +153,7 @@ async function initGame() {
   state.rawQuestions = data.questions;
   state.rawLightning = data.lightning;
   state.lightningMode = data.lightning_mode;
+  state.maxTurns      = data.num_questions;
   state.categories   = Object.keys(data.questions);
 
   preparePools();

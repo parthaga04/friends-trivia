@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Friends Trivia – Setup</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'Friends';
+      src: url('/static/fonts/friends.ttf') format('truetype');
+      font-display: swap;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -34,7 +40,7 @@
 
     /* ── Logo ── */
     .logo {
-      font-family: 'Lobster', cursive;
+      font-family: 'Friends', sans-serif;
       font-size: clamp(2.8rem, 7vw, 5rem);
       line-height: 1;
       margin-bottom: 0.25rem;
@@ -278,6 +284,25 @@
           </label>
           <div class="file-name" id="file-name-display">No file chosen</div>
           <div class="file-hint">friends_trivia_questions.xlsx</div>
+        </div>
+      </div>
+
+      <!-- Questions per team -->
+      <div class="option-card">
+        <h3>Questions Per Team (Phase 1)</h3>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="num_questions" value="5">
+            5 questions per team
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="num_questions" value="10" checked>
+            10 questions per team
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="num_questions" value="15">
+            15 questions per team
+          </label>
         </div>
       </div>
 
